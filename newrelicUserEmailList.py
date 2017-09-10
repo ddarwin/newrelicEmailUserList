@@ -24,9 +24,12 @@ parms = {
 # Ask the user for the New Relic REST API Key for the account or hit enter to use default
 restKey = input("Enter the REST API for the New Relic account or hit enter for default\n")
 
-if restKey :
+if restKey != '':    #User entered Key
+	# print("REST Key =",restKey)
 	head['X-Api-Key'] = restKey
 	
+
+userCount = 0 # Loop iterator
 
 # Infinite loop to support paginated REST API
 while True:
@@ -40,18 +43,28 @@ while True:
 		break
 	else:
 		
-		#Link value will contain the page links for "next", "previous", and "last"
-		#  Format: <https://api.newrelic.com/v2/users.json?page=2>; rel="next", <https://api.newrelic.com/v2/users.json?page=2>; rel="last"
-		nextPage = r.headers["Link"]
-		
 		# Iterate through the users and write to the CSV output file.
 		for user in r.json()["users"]:
-			csv.write(user["email"]+",")
+			userCount = userCount + 1
+			if userCount > 1 :
+				csv.write(",") # Add separator
+
+			# Write user email to file
+			csv.write(user["email"])
 			
-		# Test Link to determine if there is a "next" page. If so, increment the page parameter
-		if nextPage.find('rel="next"') != -1:
-			parms["page"] = parms["page"] + 1
-		else:
-			break   # we are done
+		#Link value will contain the page links for "next", "previous", and "last"
+		#  Format: <https://api.newrelic.com/v2/users.json?page=2>; rel="next", <https://api.newrelic.com/v2/users.json?page=2>; rel="last"
+		try:
+			nextPage = r.headers["Link"]
+			
+			# Test Link to determine if there is a "next" page. If so, increment the page parameter
+			if nextPage.find('rel="next"') != -1:
+				parms["page"] = parms["page"] + 1
+			else:
+				break   # we are done
+		except KeyError:
+			break		# no link, we are done
+			
+print("Total user emails:", userCount)
 			
 		
