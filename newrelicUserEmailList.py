@@ -52,10 +52,9 @@ while True:
 			# Write user email to file
 			csv.write(user["email"])
 		
-		# Pagination - if there is a "next" link, update URL and cread next page	
+		# Pagination - if there is a "next" link, update URL and read next page	
 		try:
-			if r.links['next']:  
-				url = r.links['next']['url']
+			url = r.links['next']['url']
 		except KeyError:						# If there is no "next" link
 			break
 			
