@@ -3,6 +3,9 @@ import requests
 
 pageNum = 1
 
+# Email address separator character
+emailSep = ';'
+
 # Output CSV file 
 download_dir = "newrelicUserEmailList.csv" 
 
@@ -20,6 +23,14 @@ head = {
 parms = {
     'page':  1
 }
+
+# Function to determine if there are additional pages of output
+def morePages(req):
+	try:
+		req.links["next"]["url"]
+		return True
+	except KeyError:
+		return False
 
 # Ask the user for the New Relic REST API Key for the account or hit enter to use default
 restKey = input("Enter the REST API for the New Relic account or hit enter for default\n")
@@ -47,15 +58,15 @@ while True:
 		for user in r.json()["users"]:
 			userCount = userCount + 1
 			if userCount > 1 :
-				csv.write(",") # Add separator
+				csv.write(emailSep) # Add separator
 
 			# Write user email to file
 			csv.write(user["email"])
 		
-		# Pagination - if there is a "next" link, update URL and read next page	
-		try:
+		# Pagination - if there are more pages of output, update URL and read next page	
+		if morePages(r):
 			url = r.links['next']['url']
-		except KeyError:						# If there is no "next" link
+		else:						# If there is no "next" link
 			break
 			
 print("Total user emails:", userCount)
